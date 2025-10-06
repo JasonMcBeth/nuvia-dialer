@@ -1,0 +1,240 @@
+/* ===========================
+   NUVIA DIALER - STYLESHEET
+   =========================== */
+
+:root {
+  --teal: #007C89;
+  --teal-dark: #005A63;
+  --teal-light: #56C4C9;
+  --bg1: #F6F8F8;
+  --bg2: #E9F4F4;
+  --text: #1C1C1C;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--bg1), var(--bg2));
+  color: var(--text);
+}
+
+/* ---------- CARD LAYOUT ---------- */
+
+.card {
+  width: 360px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 24px;
+  box-shadow: 0 8px 24px rgba(0, 124, 137, 0.25);
+  padding: 28px;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+h1 {
+  font-size: 24px;
+  text-align: center;
+  margin: 0 0 10px 0;
+  background: linear-gradient(90deg, var(--teal), var(--teal-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+small {
+  font-size: 13px;
+  color: var(--teal-dark);
+}
+
+/* ---------- INPUTS & BUTTONS ---------- */
+
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #dcdcdc;
+  border-radius: 12px;
+  margin: 8px 0;
+  outline: none;
+  text-align: center;
+  font-size: 15px;
+  background: rgba(255,255,255,0.9);
+  transition: box-shadow 0.2s ease;
+}
+
+.input:focus {
+  box-shadow: 0 0 0 3px rgba(0,124,137,0.2);
+}
+
+.input[readonly] {
+  background: #f2f4f4;
+  color: #555;
+  cursor: not-allowed;
+}
+
+.btn {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 10px;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+  box-shadow: 0 6px 14px rgba(0, 124, 137, 0.30);
+  transition: all 0.25s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+}
+
+/* ---------- STATUS LINE ---------- */
+
+.status {
+  text-align: center;
+  margin-top: 14px;
+  color: var(--teal-dark);
+  font-size: 14px;
+  min-height: 24px;
+}
+
+/* ---------- INBOUND / OUTBOUND PROGRESS ---------- */
+
+.dual-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.track {
+  background: #f0f2f2;
+  border-radius: 10px;
+  overflow: hidden;
+  height: 8px;
+  position: relative;
+}
+
+.track-bar {
+  height: 100%;
+  width: 0%;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* inbound bar (dark teal) */
+.track.inbound .track-bar {
+  background: linear-gradient(90deg, #007C89, #005A63);
+}
+
+/* outbound bar (light teal) */
+.track.outbound .track-bar {
+  background: linear-gradient(90deg, #56C4C9, #3BB0B5);
+}
+
+/* inbound label - simple */
+.track-label.inbound {
+  text-align: right;
+  justify-content: flex-end;
+  font-style: italic;
+  font-size: 12px;
+  color: #666;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* outbound label - includes icon + stage */
+.track-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--teal-dark);
+  margin-top: 4px;
+}
+
+.track-label .icon {
+  font-size: 15px;
+}
+
+/* ---------- INBOUND SHIMMER & GLOW ---------- */
+
+.track.inbound.active .track-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, rgba(255,255,255,0.25), rgba(255,255,255,0));
+  animation: inboundRipple 1.8s infinite;
+}
+
+@keyframes inboundRipple {
+  0% { transform: translateX(-100%); opacity: 0.4; }
+  50% { opacity: 0.8; }
+  100% { transform: translateX(100%); opacity: 0.2; }
+}
+
+.track.inbound.glow {
+  box-shadow: 0 0 12px rgba(0,124,137,0.4);
+}
+
+/* ---------- CONNECTED BANNERS ---------- */
+
+.banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 0;
+  text-align: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+  animation: slideDown 0.6s ease;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.banner.inbound {
+  background: linear-gradient(90deg, #007C89, #005A63);
+}
+.banner.outbound {
+  background: linear-gradient(90deg, #56C4C9, #3BB0B5);
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ---------- CARD ANIMATION ---------- */
+
+.fade {
+  opacity: 0;
+  transform: translateY(15px);
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- RESPONSIVE ADJUSTMENTS ---------- */
+
+@media (max-width: 400px) {
+  .card {
+    width: 90%;
+    padding: 20px;
+  }
+}
