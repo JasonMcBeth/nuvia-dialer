@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: nuvia-dialer-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: FIVE9_CLIENT_ID
+        sync: false
+      - key: FIVE9_CLIENT_SECRET
+        sync: false
+      - key: ALLOWED_ORIGIN
+        value: https://nuvia-dialer-frontend.onrender.com
+
+  - type: static
+    name: nuvia-dialer-frontend
+    buildCommand: ""
+    staticPublishPath: frontend

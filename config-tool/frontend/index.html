@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Five9 Config Tool</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Five9 Configuration Tool</h1>
+    <form id="configForm">
+      <input id="username" placeholder="Five9 Admin Username" required>
+      <input id="password" type="password" placeholder="Five9 Password" required>
+      <input id="location" placeholder="New Location (e.g. Chevy Chase)" required>
+      <select id="timezone">
+        <option value="EST">EST</option>
+        <option value="CST">CST</option>
+        <option value="MST">MST</option>
+        <option value="PST">PST</option>
+      </select>
+      <input id="ghlLocationId" placeholder="GHL Location ID (optional)">
+      <input id="ghlPipelineId" placeholder="GHL Pipeline ID (optional)">
+      <button type="submit">Create Configuration</button>
+    </form>
+    <div id="status"></div>
+  </div>
+  <script src="./app.js"></script>
+</body>
+</html>
