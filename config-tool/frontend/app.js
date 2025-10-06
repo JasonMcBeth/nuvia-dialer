@@ -21,12 +21,14 @@ document.getElementById("configForm").addEventListener("submit", async (e) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
+
     if (!res.ok) {
       const err = await res.text();
       status.textContent = `Error: ${err}`;
       status.style.color = "red";
       return;
     }
+
     const data = await res.json();
     status.textContent = data.message || "Configuration created successfully.";
     status.style.color = "#007C89";
