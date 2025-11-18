@@ -1,0 +1,49 @@
+/* Nuvia brand + DTMF indicator styles for Five9 ADT */
+:root {
+  --nuvia-blue: #0f2a4a;
+  --nuvia-aqua: #00b7a6;
+  --nuvia-gray: #f1f5f9;
+}
+
+/* Headings and labels */
+.f9-adt .section-title,
+.f9-adt .label {
+  color: var(--nuvia-blue) !important;
+}
+
+/* Buttons */
+.f9-adt .btnPrimary {
+  background: var(--nuvia-blue) !important;
+  border-color: rgba(15,42,74,.15) !important;
+}
+.f9-adt .btnSecondary {
+  border: 1px solid rgba(15,42,74,.15) !important;
+}
+
+/* DTMF indicator feedback */
+button[name="dtmf-indicator"].dtmf-ok {
+  background-color: var(--nuvia-aqua) !important;
+  color: #fff !important;
+  animation: pulse-ok 0.9s ease;
+}
+button[name="dtmf-indicator"].dtmf-err {
+  background-color: #e74c3c !important;
+  color: #fff !important;
+  animation: pulse-err 0.9s ease;
+}
+@keyframes pulse-ok {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes pulse-err {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Focus ring */
+.f9-adt button:focus-visible {
+  outline: 2px solid var(--nuvia-aqua) !important;
+  outline-offset: 1px;
+}
