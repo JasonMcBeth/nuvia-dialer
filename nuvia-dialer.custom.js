@@ -1,31 +1,38 @@
-/* Nuvia Dialer — Five9 CustomComponents (JS-only)
-   - Includes bootstrap that waits for Five9 SDK before initializing
-   - Provides dialer, presence controls, audio checks, and in-call DTMF with indicator
+/* Nuvia Dialer — Five9 CustomComponents (robust bootstrap)
+   - Waits for Five9.CrmSdk + customComponentsApi before registering
+   - Shows notifications on success/failure
+   - Dialer + Presence + Audio checks + in-call DTMF with indicator
 */
 
-/* === BOOTSTRAP: wait for Five9 SDK to be present === */
+/* === BOOTSTRAP: wait for SDK + APIs (up to ~60s) === */
 (function boot(tries = 0) {
   const Sdk = window.Five9?.CrmSdk;
-  if (!Sdk) {
-    if (tries < 40) return setTimeout(() => boot(tries + 1), 250); // wait up to ~10s total
+  if (!Sdk || typeof Sdk.customComponentsApi !== "function") {
+    if (tries < 240) return setTimeout(() => boot(tries + 1), 250); // ~60s max
     console.warn("Nuvia Dialer: Five9 SDK not detected; custom UI not initialized.");
+    return;
+  }
+
+  let cApi;
+  try { cApi = Sdk.customComponentsApi(); } catch {}
+  if (!cApi || typeof cApi.registerCustomComponents !== "function") {
+    if (tries < 240) return setTimeout(() => boot(tries + 1), 250);
+    console.warn("Nuvia Dialer: customComponentsApi unavailable; UI not initialized.");
     return;
   }
 
   /* === APP START === */
   (function () {
-    const CONFIG = {
-      APP_HOST: "app.five9.com",
-      API_HOST: "api.five9.com"
-    };
-
-    const crmApi = Sdk.crmApi();
+    const crmApi = Sdk.crmApi?.();
     const presenceApi = Sdk.presenceApi?.();
     const applicationApi = Sdk.applicationApi?.();
-    const customComponentsApi = Sdk.customComponentsApi?.();
+    const customComponentsApi = cApi;
     const interactionApi = Sdk.interactionApi?.();
 
-    console.log("Nuvia Dialer: Five9 SDK ready, initializing...");
+    const notify = (msg, type = "info") =>
+      applicationApi?.notify ? applicationApi.notify({ message: msg, type }) : console.log(`[${type}] ${msg}`);
+
+    console.log("Nuvia Dialer: Five9 SDK ready, initializing…");
 
     const state = {
       useDefaultCampaign: true,
@@ -34,23 +41,17 @@
     };
 
     // ---------- helpers ----------
-    const getVal = n => document.querySelector(`[name="${n}"]`)?.value || "";
-    const setVal = (n, v) => { const el = document.querySelector(`[name="${n}"]`); if (el) el.value = v; };
+    const q = (sel) => document.querySelector(sel);
+    const getVal = (n) => q(`[name="${n}"]`)?.value || "";
+    const setVal = (n, v) => { const el = q(`[name="${n}"]`); if (el) el.value = v; };
     const setLabel = (n, txt) => { document.querySelectorAll(`button[name="${n}"]`).forEach(b => b.innerText = txt); };
-    const sanitize = n => (n || "").replace(/[^0-9*#+]/g, "");
+    const sanitize = (n) => (n || "").replace(/[^0-9*#+]/g, "");
 
-    function notify(msg, type) {
-      if (applicationApi?.notify) applicationApi.notify({ message: msg, type: type || "info" });
-      else console.log(`[${type || "info"}] ${msg}`);
-    }
-
-    // ---------- presence ----------
     async function setPresence(status) {
-      try { await presenceApi?.setStatus({ status }); }
+      try { await presenceApi?.setStatus?.({ status }); }
       catch (e) { console.error("setPresence failed", e); notify("Presence change failed.", "error"); }
     }
 
-    // ---------- dialing ----------
     function click2Dial(num, campaign) {
       const n = sanitize(num);
       if (!n) return;
@@ -65,7 +66,6 @@
       } catch (e) { console.error("click2dial", e); notify("click2dial() failed.", "error"); }
     }
 
-    // ---------- audio checks ----------
     async function testMic() {
       try {
         const s = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -83,7 +83,7 @@
       } catch (e) { console.warn(e); }
     }
 
-    // ---------- DTMF ----------
+    // ---------- DTMF & call state ----------
     interactionApi?.subscribe?.({
       callStarted:  () => state.callActive = true,
       callAccepted: () => state.callActive = true,
@@ -95,13 +95,8 @@
       const cur = getVal("nv-number");
       setVal("nv-number", (cur || "") + d);
       if (state.callActive && interactionApi?.sendDtmf) {
-        try {
-          await interactionApi.sendDtmf({ char: d });
-          flashIndicator(`Sent DTMF ${d}`, true);
-        } catch (e) {
-          console.error("sendDtmf failed:", e);
-          flashIndicator(`DTMF ${d} failed`, false);
-        }
+        try { await interactionApi.sendDtmf({ char: d }); flashIndicator(`Sent DTMF ${d}`, true); }
+        catch (e) { console.error("sendDtmf failed:", e); flashIndicator(`DTMF ${d} failed`, false); }
       } else {
         flashIndicator("No active call", false);
       }
@@ -123,7 +118,7 @@
       }, 1200);
     }
 
-    // ---------- template ----------
+    // ---------- template (Five9-documented locations) ----------
     const template = `
       <adt-components>
         <adt-component location="3rdPartyComp-li-call-tab" label="Nuvia Dialer" style="flex-direction:column;gap:8px">
@@ -170,7 +165,6 @@
       </adt-components>
     `;
 
-    // ---------- callbacks ----------
     const callbacks = {
       nv_onDial: () => click2Dial(getVal("nv-number"), getVal("nv-campaign")),
       nv_onClear: () => setVal("nv-number", ""),
@@ -206,16 +200,17 @@
       nv_digit_hash: () => sendDigit("#")
     };
 
-    // ---------- register ----------
     try {
-      customComponentsApi?.registerCustomComponents({ template, callbacks });
+      customComponentsApi.registerCustomComponents({ template, callbacks });
       console.log("Nuvia Dialer: Custom components registered.");
+      notify("Nuvia Dialer loaded", "success");
     } catch (e) {
       console.error("registerCustomComponents failed", e);
+      notify("Custom UI failed to load. See console.", "error");
     }
 
-    // optional keyboard passthrough for DTMF
-    window.addEventListener("keydown", e => {
+    // Optional keyboard DTMF
+    window.addEventListener("keydown", (e) => {
       const map = { "#": "#", "*": "*", "0":"0","1":"1","2":"2","3":"3","4":"4","5":"5","6":"6","7":"7","8":"8","9":"9" };
       const k = map[e.key];
       if (!k) return;
